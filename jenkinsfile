@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+    
+    environment {
+        registry = "docker.io"
+        registryCredential = 'dockerhub'
+        dockerImage = ''
+    }
+
+    stages {
+        stage("Git checkout") {
+            steps {
+                script {
+                    def gitCheckout = checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'github', url: 'https://github.com/Gideon-Tee/el-blog.git']]])
+                }
+            }
+        }
+
+        stage("Build stage") {
+            steps {
+                sh "echo 'In the build stage'"
+            }
+        }
+
+        stage("Test stage") {
+            steps {
+                sh "echo 'In the test stage'"
+            }
+        }
+
+        stage("Deploy stage") {
+            steps {
+                sh "echo 'In the deploy stage'"
+            }
+        }
+    }
+
+
+    post {
+        success {
+            echo "Build was successful"
+        }
+        failure {
+            echo "Build failed"
+        }
+        always {
+            echo "Pipeline completed"
+        }
+    }
+}
