@@ -17,9 +17,20 @@ pipeline {
         }
 
         stage("Build stage") {
+            environment {
+                dockerImage = "el-blog"
+                registry = "gideontee"
+            }
+
             steps {
-                sh "echo 'In the build stage'"
-                sh "ls -l"
+                sh '''
+                    echo 'Building the image'
+                    docker build -t $dockerImage .
+                    docker tag $dockerImage $registry/$dockerImage
+                    echo 'Pushing to docker hub'
+                    docker push $registry/$dockerImage
+
+                '''
             }
         }
 
