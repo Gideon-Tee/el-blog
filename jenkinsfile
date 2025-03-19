@@ -19,6 +19,7 @@ pipeline {
         stage("Build stage") {
             steps {
                 sh "echo 'In the build stage'"
+                sh "ls -l"
             }
         }
 
