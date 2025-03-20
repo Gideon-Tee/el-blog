@@ -2,9 +2,8 @@ pipeline {
     agent any
     
     environment {
-        registry = "docker.io"
-        registryCredential = 'dockerhub'
-        dockerImage = ''
+        VERSION = '1.0'
+        RELEASE_VERSION = 'R1.0'
     }
 
     stages {
@@ -26,9 +25,9 @@ pipeline {
                 sh '''
                     echo 'Building the image'
                     docker build -t $dockerImage .
+                    echo 'Tagging the image'
                     docker tag $dockerImage $registry/$dockerImage
-                    echo 'Pushing to docker hub'
-                    docker push $registry/$dockerImage
+                    
 
                 '''
             }
@@ -41,19 +40,31 @@ pipeline {
         }
 
         stage("Deploy stage") {
-            steps {
-                sh "echo 'In the deploy stage'"
+            environment {
+                dockerImage = "el-blog"
+                registry = "gideontee"
             }
+
+            input {
+                message "Do you want to deploy?"
+                ok "Yes"
+                steps {
+                    sh "echo 'Deploying the image'"
+                    sh "Pushing to docker hub"
+                    sh "docker push $registry/$dockerImage"
+                }
+            }
+            
         }
     }
 
 
     post {
         success {
-            echo "Build was successful"
+            echo "Deploy was successful"
         }
         failure {
-            echo "Build failed"
+            echo "Deploy failed"
         }
         always {
             echo "Pipeline completed"
