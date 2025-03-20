@@ -1,9 +1,13 @@
 pipeline {
     agent any
+
+    parameters {
+        string(name: 'VERSION', defaultValue: 'latest', description: 'Version of the image')
+    }
     
     environment {
-        VERSION = '1.0'
-        RELEASE_VERSION = 'R1.0'
+        dockerImage = "el-blog"
+        registry = "gideontee"
     }
 
     stages {
@@ -16,39 +20,36 @@ pipeline {
         }
 
         stage("Build stage") {
-            environment {
-                dockerImage = "el-blog"
-                registry = "gideontee"
-            }
-
             steps {
-                sh '''
-                    echo 'Building the image'
-                    docker build -t $dockerImage .
-                    echo 'Tagging the image'
-                    docker tag $dockerImage $registry/$dockerImage:$VERSION
-                    
 
-                '''
-            }
-        }
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhubcred',
+                    usernameVariable: 'DOCKERHUB_USERNAME',
+                    passwordVariable: 'DOCKERHUB_PASSWORD'
+                )]) {
+                    sh """
+                        echo 'Logging into Docker Hub...'
+                        docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
 
-        stage("Test stage") {
-            steps {
-                sh "echo 'In the test stage'"
+                        echo 'Building the image...'
+                        docker build -t $registry/$dockerImage:$VERSION .
+
+                        echo 'Tagging the image...'
+                        docker tag $registry/$dockerImage:$VERSION $registry/$dockerImage:$VERSION
+                    """
+                }
+
+                
             }
         }
 
         stage("Deploy stage") {
-            environment {
-                dockerImage = "el-blog"
-                registry = "gideontee"
-            }
+            
             steps {
                 input message: "Do you want to deploy?", ok: "Deploy"
 
-                sh "echo 'Deploying the image'"
-                sh "echo 'Pushing to docker hub'"
+                sh "echo 'Deploying the image...'"
+                sh "echo 'Pushing to docker hub...'"
                 sh "docker push $registry/$dockerImage:$VERSION"
 
             }
