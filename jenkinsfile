@@ -26,7 +26,7 @@ pipeline {
                     echo 'Building the image'
                     docker build -t $dockerImage .
                     echo 'Tagging the image'
-                    docker tag $dockerImage $registry/$dockerImage
+                    docker tag $dockerImage $registry/$dockerImage:$VERSION
                     
 
                 '''
@@ -44,17 +44,14 @@ pipeline {
                 dockerImage = "el-blog"
                 registry = "gideontee"
             }
+            steps {
+                input message: "Do you want to deploy?", ok: "Deploy"
 
-            input {
-                message "Do you want to deploy?"
-                ok "Yes"
-                steps {
-                    sh "echo 'Deploying the image'"
-                    sh "Pushing to docker hub"
-                    sh "docker push $registry/$dockerImage"
-                }
+                sh "echo 'Deploying the image'"
+                sh "echo 'Pushing to docker hub'"
+                sh "docker push $registry/$dockerImage:$VERSION"
+
             }
-            
         }
     }
 
